@@ -1,11 +1,27 @@
 import os
 import random as rnd
+import time
+
+
+def int_input(message, allowed_value_list):
+    while True:
+        raw_input = input(message)
+        try:
+            result = int(raw_input)
+            if result in allowed_value_list:
+                return result
+            else:
+                input('Значение за пределами допустимого. Нажмите Enter для повтора.')
+                continue
+        except:
+            input('Не удалось распознать число. Нажмите Enter для повтора.')
+            continue
 
 
 def render_sticks(stick_count, stack):
-    for i in range(3):  # три ряда для рендера палочек
+    for i in range(3):
         render_string = ''
-        if i == 1:  # если второй ряд рендера
+        if i == 1:
             for j in range(len(stack)):
                 render_string += stack[j] + ' '  # в рендер добавляем зачеркнутые палочки из стека
             for j in range(stick_count - len(stack)):
@@ -39,25 +55,37 @@ def cross_sticks(crossed_count, stack, current_turn, stick_count):
 def move(current_turn, stick_count, stack, hard_level):
     available = available_stick_count(stick_count, stack)
     if current_turn == 1:
-        try:
-            crossed_sticks = int(input('Введите количество палочек, '
-                                       'которое хотите зачеркнуть (1-' +
-                                       str(available) + '):'))
-        except ValueError or TypeError:
-            crossed_sticks = rnd.randrange(1, available + 1)
-            print('Вы ввели не число, количество палочек будет'
-                  ' определено случайно:', crossed_sticks)
-        if crossed_sticks > available or crossed_sticks < 1:
-            crossed_sticks = rnd.randrange(1, available + 1)
-            print('Вы ввели слишком маленькое/большое число, количество'
-                  ' палочек будет определено случайно:', crossed_sticks)
+        crossed_sticks = int_input('Введите количество палочек, '
+                                   'которое хотите зачеркнуть (1-' +
+                                    str(available) + '):', range(1, available+1))
         cross_sticks(crossed_sticks, stack, current_turn, stick_count)
     elif current_turn == 2:
         if hard_level == 1:
             crossed_sticks = rnd.randrange(1, available + 1)
             cross_sticks(crossed_sticks, stack, current_turn, stick_count)
         elif hard_level == 2:
-            pass
+            raw_stick_count = stick_count - 5
+            quartet_count = int(raw_stick_count/4)
+            first_stage_length = raw_stick_count - (quartet_count*4)
+            current_quartet = int((len(stack) - first_stage_length) / 4) + 1
+            crossed_sticks = 0
+            if len(stack) == 0:
+                if first_stage_length == 0:
+                    crossed_sticks = 1
+                else:
+                    crossed_sticks = first_stage_length
+            elif len(stack) == first_stage_length+1+(current_quartet*4):
+                crossed_sticks = 1
+            elif 0 < len(stack) <= first_stage_length:
+                crossed_sticks = first_stage_length-len(stack)
+            elif first_stage_length < len(stack) <= raw_stick_count:
+                crossed_sticks = (current_quartet*4) - (len(stack)-first_stage_length)
+            elif len(stack) > raw_stick_count:
+                crossed_sticks = stick_count - len(stack) - 1
+
+            cross_sticks(crossed_sticks, stack, current_turn, stick_count)
+            print('Компьютер зачеркнул ' + str(crossed_sticks) + ' палочек, переход хода...')
+            time.sleep(2)
 
 
 def determine_first_turn():
@@ -71,60 +99,45 @@ def determine_first_turn():
 
 
 def choose_level():
-    final_choose = 0
-    while True:
-        os.system('cls')
-        try:
-            choose = int(input('Выберите уровень сложности (1 - легко, 2 - сложно): '))
-            if choose < 1 or choose > 2:
-                input('Неверный ввод, повторите попытку. Нажмите Enter.')
-                continue
-            else:
-                final_choose = choose
-                break
-        except ValueError or TypeError:
-            input('Неверный ввод, повторите попытку. Нажмите Enter.')
-            continue
-    game(final_choose)
+    os.system('cls')
+    choose = int_input('Выберите уровень сложности (1 - легко, 2 - сложно): ', range(1, 3))
+    game(choose)
 
 
 def menu():
     while True:
         os.system('cls')
         print('Главное меню. Выберите пункт: \n1. Играть \n2. Правила \n3. Выход')
-        choose = intinput()
-        try:
-            inp = int(input('Ваш ввод: '))
-            if inp == 1:
-                choose_level()
-            elif inp == 2:
-                rules()
-            elif inp == 3:
-                os.close(0)
-            else:
-                input('Отсутствует выбранный пункт меню. Нажмите Enter.')
-        except ValueError:
-            input('Ошибка ввода, повторите попытку. Нажмите Enter.')
-            continue
+        choose = int_input('Ваш ввод: ', range(1, 4))
+        if choose == 1:
+            choose_level()
+        elif choose == 2:
+            rules()
+        elif choose == 3:
+            os.close(0)
 
 
 def rules():
     os.system('cls')
     print(
-        'Игра палочки. Правила: \nВ начале игры создается игровое поле\nиз случайного количества палочек (9-20 штук).')
-    print('После генерации поля случайным образом \nвыбирается игрок, который будет ходить первым.')
-    print(
-        'Ход – зачеркивание от 1 до 3 палочек слева направо.\nКак только игрок 1 зачеркнул нужное количество палочек,')
-    print('ход переходит игроку 2 и т.д. Проигравшим считается игрок,\nкоторый зачеркнет последнюю палочку.\n')
-    print('Палочки, которые зачеркнул игрок отображаются так: \n/\nИ\n/\n')
-    print('Палочки, которые зачеркнул компьютер отображаются так: \n/\nК\n/')
-    input('\nНажмите Enter для выхода в меню.\n')
+        'Игра палочки. Правила: '
+        '\nВ начале игры создается игровое поле'
+        '\nиз случайного количества палочек (9-20 штук).'
+        '\nПосле генерации поля случайным образом '
+        '\nвыбирается игрок, который будет ходить первым. '
+        '\nХод – зачеркивание от 1 до 3 палочек слева направо.'
+        '\nКак только игрок 1 зачеркнул нужное количество палочек, '
+        '\nход переходит игроку 2 и т.д. Проигравшим считается игрок,'
+        '\nкоторый зачеркнет последнюю палочку.\n'
+        '\nПалочки, которые зачеркнул игрок отображаются так: \n/\nИ\n/\n'
+        '\nПалочки, которые зачеркнул компьютер отображаются так: \n/\nК\n/'
+        '\nНажмите Enter для выхода в меню.\n')
+    input()
     return
 
 
 def game(hard_level):
-    os.system('cls')
-    stick_count = rnd.randrange(9,21)
+    stick_count = rnd.randrange(9, 21)
     stack = []
     current_turn = determine_first_turn()
     while not len(stack) == stick_count:
@@ -136,9 +149,6 @@ def game(hard_level):
             current_turn = 2
         elif current_turn == 2:
             current_turn = 1
-        else:
-            input('Что-то пошло не так, выход в меню. Нажмите Enter.')
-            return
         os.system('cls')
     if stack[len(stack)-1] == 'И':
         print('Компьютер победил.')
