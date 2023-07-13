@@ -114,7 +114,7 @@ def menu():
         elif choose == 2:
             rules()
         elif choose == 3:
-            os.close(0)
+            return
 
 
 def rules():
