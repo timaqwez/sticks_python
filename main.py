@@ -57,7 +57,7 @@ def move(current_turn, stick_count, stack, hard_level):
     if current_turn == 1:
         crossed_sticks = int_input('Введите количество палочек, '
                                    'которое хотите зачеркнуть (1-' +
-                                    str(available) + '):', range(1, available+1))
+                                    str(available) + '): ', range(1, available+1))
         cross_sticks(crossed_sticks, stack, current_turn, stick_count)
     elif current_turn == 2:
         if hard_level == 1:
